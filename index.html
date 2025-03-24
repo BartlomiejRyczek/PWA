@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="description" content="Prosta aplikacja PWA z funkcją mapy i SOS">
     <title>Prosta PWA</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
     <style>
@@ -91,6 +96,36 @@
         // PWA - prosty Service Worker
         if('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
+        }
+
+        // PWA - Instalacja
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          deferredPrompt = e;
+          // Możesz tutaj wyświetlić przycisk instalacyjny, np.:
+          const installBtn = document.createElement('button');
+          installBtn.textContent = 'Zainstaluj aplikację';
+          installBtn.className = 'btn btn-success w-100 mb-2';
+          installBtn.onclick = () => {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+              if (choiceResult.outcome === 'accepted') {
+                console.log('Użytkownik zaakceptował instalację');
+              }
+              deferredPrompt = null;
+            });
+          };
+          document.querySelector('#home').prepend(installBtn);
+        });
+
+        // Rejestracja Service Worker
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+              .then(registration => console.log('ServiceWorker zarejestrowany'))
+              .catch(err => console.log('Błąd rejestracji ServiceWorker:', err));
+          });
         }
     </script>
 </body>
