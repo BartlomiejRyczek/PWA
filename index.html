@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prosta PWA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        #map { height: 300px; margin: 10px 0; }
+        .screen { display: none; }
+        .active { display: block; }
+    </style>
+</head>
+<body class="container mt-3">
+    <!-- Menu główne -->
+    <div id="home" class="screen active">
+        <h1>Nasza Aplikacja</h1>
+        <p>Autorzy: Jan Kowalski, Anna Nowak, Piotr Wiśniewski</p>
+        
+        <button class="btn btn-primary w-100 mb-2" onclick="show('map')">Mapa GPS</button>
+        <button class="btn btn-danger w-100" onclick="show('sos')">SOS</button>
+    </div>
+
+    <!-- Mapa -->
+    <div id="map" class="screen">
+        <h2>Twoja lokalizacja</h2>
+        <div id="map-container"></div>
+        <p id="location">Ładowanie...</p>
+        <button class="btn btn-secondary w-100" onclick="show('home')">Wróć</button>
+    </div>
+
+    <!-- SOS -->
+    <div id="sos" class="screen">
+        <h2 class="text-danger">SOS</h2>
+        <button id="sos-btn" class="btn btn-danger btn-lg w-100 py-3" onclick="vibrate()">
+            AKTYWUJ SYGNAŁ
+        </button>
+        <button class="btn btn-secondary w-100 mt-2" onclick="show('home')">Wróć</button>
+    </div>
+
+    <script>
+        // Przełączanie widoków
+        function show(screenId) {
+            document.querySelectorAll('.screen').forEach(s => {
+                s.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+            
+            if(screenId === 'map') initMap();
+        }
+
+        // Mapa
+        function initMap() {
+            if(!navigator.geolocation) {
+                document.getElementById('location').textContent = "Brak dostępu do GPS";
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(position => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                
+                document.getElementById('location').textContent = 
+                    `Szerokość: ${lat.toFixed(4)}, Długość: ${lon.toFixed(4)}`;
+                
+                // Prosta mapa bez Leaflet - wykorzystanie iframe z OpenStreetMap
+                const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lon-0.01}%2C${lat-0.01}%2C${lon+0.01}%2C${lat+0.01}&layer=mapnik&marker=${lat}%2C${lon}`;
+                document.getElementById('map-container').innerHTML = 
+                    `<iframe id="map-iframe" width="100%" height="100%" frameborder="0" src="${mapUrl}"></iframe>`;
+            }, error => {
+                document.getElementById('location').textContent = "Błąd: " + error.message;
+            });
+        }
+
+        // Wibracje SOS
+        function vibrate() {
+            if(!navigator.vibrate) {
+                alert("Twoje urządzenie nie obsługuje wibracji!");
+                return;
+            }
+            
+            // 3 krótkie, 3 długie, 3 krótkie (kod Morse'a SOS)
+            navigator.vibrate(100);
+            
+            const btn = document.getElementById('sos-btn');
+            btn.textContent = "WYSŁANO SOS!";
+            setTimeout(() => btn.textContent = "AKTYWUJ SYGNAŁ", 2000);
+        }
+
+        // PWA - prosty Service Worker
+        if('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>
