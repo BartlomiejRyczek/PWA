@@ -79,18 +79,11 @@
         }
 
         // Wibracje SOS
-        function vibrate() {
-            if(!navigator.vibrate) {
-                alert("Twoje urządzenie nie obsługuje wibracji!");
-                return;
-            }
-            
+        function vibrate(){
             // 3 krótkie, 3 długie, 3 krótkie (kod Morse'a SOS)
             navigator.vibrate(100);
             
-            const btn = document.getElementById('sos-btn');
-            btn.textContent = "WYSŁANO SOS!";
-            setTimeout(() => btn.textContent = "AKTYWUJ SYGNAŁ", 2000);
+
         }
 
         // PWA - prosty Service Worker
